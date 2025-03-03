@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>VisionXpert Pro - ATS Resume Builder</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #059669;
+            --accent: #f59e0b;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui;
+            margin: 0;
+            background: #f8fafc;
+        }
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 1rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        input, textarea, button {
+            width: 100%;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        button {
+            background: var(--primary);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        #livePreview {
+            border: 2px dashed var(--secondary);
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-rocket"></i> RS Technovisions</h1>
+        <h2>VisionXpert - AI-Powered ATS Resume Builder</h2>
+    </div>
+
+    <div class="container">
+        <!-- ATS Analyzer -->
+        <div class="card">
+            <h2><i class="fas fa-chart-line"></i> Resume Analyzer</h2>
+            <div class="form-group">
+                <input type="file" id="resumeUpload" accept=".pdf,.docx,.txt">
+                <button onclick="analyzeResume()">Get ATS Score <i class="fas fa-spinner"></i></button>
+            </div>
+            <div id="atsResults">
+                <h3>ATS Score: <span id="score">0</span>/100</h3>
+                <div class="progress-bar">
+                    <div class="progress" style="width: 0%"></div>
+                </div>
+                <div id="feedback"></div>
+            </div>
+        </div>
+
+        <!-- Resume Builder -->
+        <div class="card">
+            <h2><i class="fas fa-magic"></i> Resume Builder</h2>
+            <div class="form-group">
+                <input type="text" id="fullName" placeholder="Full Name*" required>
+                <input type="text" id="jobTitle" placeholder="Target Job Title*" required>
+                <textarea id="skills" placeholder="Skills (comma separated)*" rows="3" required></textarea>
+                <textarea id="experience" placeholder="Work Experience*" rows="4" required></textarea>
+                <div class="button-group">
+                    <button onclick="exportPDF()" style="background: var(--secondary)">
+                        <i class="fas fa-file-pdf"></i> PDF
+                    </button>
+                    <button onclick="exportDOCX()" style="background: var(--accent)">
+                        <i class="fas fa-file-word"></i> DOCX
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Preview Section -->
+    <div class="container">
+        <div class="card">
+            <h2><i class="fas fa-eye"></i> Live Preview</h2>
+            <div id="livePreview"></div>
+        </div>
+    </div>
+
+<script>
+    // Real-time Preview Updater
+    document.querySelectorAll('input, textarea').forEach(element => {
+        element.addEventListener('input', updatePreview);
+    });
+
+    function updatePreview() {
+        document.getElementById('livePreview').innerHTML = `
+            <h2>${document.getElementById('fullName').value || "John Doe"}</h2>
+            <h3>${document.getElementById('jobTitle').value || "Software Engineer"}</h3>
+            <hr>
+            <h4>Skills</h4>
+            <ul>${(document.getElementById('skills').value || "HTML, CSS, JavaScript")
+                .split(',').map(skill => `<li>${skill.trim()}</li>`).join('')}</ul>
+            <h4>Experience</h4>
+            <p>${document.getElementById('experience').value || "Add your experience here..."}</p>
+        `;
+    }
+
+    // Advanced ATS Analyzer
+    async function analyzeResume() {
+        const file = document.getElementById('resumeUpload').files[0];
+        if(!file) return alert("Please upload a resume file");
+
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            const text = e.target.result.toLowerCase();
+            let score = 0;
+            
+            // Enhanced ATS Algorithm
+            const sections = ['experience', 'education', 'skills', 'projects'];
+            const keywords = ['managed', 'achieved', 'improved', 'developed', 'increased'];
+            
+            sections.forEach(section => {
+                if(text.includes(section)) score += 15;
+            });
+            
+            keywords.forEach(keyword => {
+                const count = (text.match(new RegExp(keyword, 'g')) || []).length;
+                score += Math.min(count, 3) * 5;
+            });
+
+            if(/\d+/.test(text)) score += 20; // Quantifiable results
+            if(text.length > 600) score += 10; // Content length
+            score = Math.min(score, 100);
+
+            // Display Results
+            document.getElementById('score').textContent = score;
+            document.querySelector('.progress').style.width = `${score}%`;
+            document.getElementById('feedback').innerHTML = `
+                <p>${score >= 70 ? '✅' : '⚠️'} 
+                ${score >= 70 ? 'ATS Optimized!' : 'Add more action verbs and metrics'}</p>
+            `;
+        }
+        reader.readAsText(file);
+    }
+
+    // Export Functions
+    function exportPDF() {
+        const element = document.getElementById('livePreview');
+        html2pdf()
+            .set({
+                margin: [15, 15],
+                filename: 'visionxpert_resume.pdf',
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4' }
+            })
+            .from(element)
+            .save();
+    }
+
+    function exportDOCX() {
+        const { Document, Packer, Paragraph, TextRun } = docx;
+        const doc = new Document({
+            sections: [{
+                children: [
+                    new Paragraph({
+                        children: [
+                            new TextRun({
+                                text: document.getElementById('fullName').value,
+                                bold: true,
+                                size: 28
+                            })
+                        ]
+                    }),
+                    new Paragraph(document.getElementById('jobTitle').value),
+                    new Paragraph("Skills:"),
+                    new Paragraph(document.getElementById('skills').value),
+                    new Paragraph("Experience:"),
+                    new Paragraph(document.getElementById('experience').value)
+                ]
+            }]
+        });
+
+        Packer.toBlob(doc).then(blob => {
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'visionxpert_resume.docx';
+            link.click();
+        });
+    }
+</script>
+
+<!-- Dependencies -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://unpkg.com/docx@7.7.0/build/index.js"></script>
+</body>
+</html>
